@@ -1,0 +1,23 @@
+// Este es un comentario de una línea
+#include <iostream>
+
+/* Este es un comentario
+   multilínea que debe
+   ser eliminado */
+
+int main() {
+    // Declaración de variables
+    int x = 10;
+    int y = 20;
+    
+    // Suma de variables 
+    int suma = x + y;
+    
+    // Imprimir resultado
+    cout << "La suma es: " << suma << endl;
+    
+    system("pause");
+    return 0;
+}
+
+// Fin del programa

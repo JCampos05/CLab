@@ -1,0 +1,9 @@
+#include<iostream>
+intmain(){
+intx=10;
+inty=20;
+intsuma=x+y;
+cout<<"Lasumaes:"<<suma<<endl;
+system("pause");
+return0;
+}
