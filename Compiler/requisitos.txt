@@ -1,0 +1,4 @@
+Lista de tokens
+lista enlazada
+lista de errores con posicion de los errores
+automatas

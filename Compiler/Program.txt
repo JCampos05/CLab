@@ -1,0 +1,173 @@
+// ============================================================
+//  Program.txt — Escenarios de prueba del Analizador Lexico
+//  idealC | Ingenieria en Software
+//
+//  CUANDO MARCA ERROR:
+//    1. Caracter no reconocido (no pertenece al lenguaje)
+//    2. Cadena sin cerrar (falta la comilla de cierre)
+//    3. Decimal mal formado (punto sin digitos despues)
+//    4. Operador invalido (! sin = despues)
+//    5. Comentario de bloque sin cerrar (falta */)
+// ============================================================
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 1 — SIN ERRORES
+//  Programa completo y valido. Debe tokenizar limpio.
+// ────────────────────────────────────────────────────────────
+
+func entero factorial(entero n) {
+    si (n <= 1) {
+        retornar 1;
+    } sino {
+        retornar mul(n, factorial(n - 1));
+    }
+}
+
+func vacio principal() {
+    entero num;
+    entero resultado;
+    deci promedio;
+    logico activo;
+
+    activo = verdadero;
+    promedio = 3.14;
+    num = 10;
+
+    resultado = factorial(num);
+    escribir("Resultado: ", resultado);
+
+    si (activo y no falso) {
+        escribir("Condicion cumplida");
+    }
+
+    entero i;
+    para (i = 0; i < 5; i++) {
+        escribir(i);
+    }
+
+    mientras (num > 0) {
+        num--;
+    }
+
+    limpPantalla();
+}
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 2 — ERROR: Caracteres no reconocidos
+//  @ $ # ^ no pertenecen al alfabeto de idealC.
+//  El lexer emite ERROR por cada uno y continua.
+// ────────────────────────────────────────────────────────────
+
+entero x = @5;
+cad nombre = $resultado;
+deci y = 2.0 # 3.0;
+entero z = 10 ^ 2;
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 3 — ERROR: Cadena sin cerrar
+//  Le falta la comilla de cierre al final.
+//  El lexer detecta el salto de linea o EOF y marca error.
+// ────────────────────────────────────────────────────────────
+
+cad mensaje = "Hola mundo;
+cad otro    = "Este si cierra bien";
+cad roto    = "Sin cierre al final
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 4 — ERROR: Decimal mal formado
+//  Tiene punto decimal pero no tiene digitos despues del punto.
+//  Segun el AFD3, q2 requiere al menos un digito para aceptar.
+// ────────────────────────────────────────────────────────────
+
+deci a = 3.;
+deci b = 100.;
+deci c = 0.;
+deci d = 9.9;
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 5 — ERROR: Operador ! sin =
+//  El AFD5 acepta != como OP_DISTINTO.
+//  Si ! va solo (sin = despues) es un caracter invalido.
+// ────────────────────────────────────────────────────────────
+
+si (x ! 5) {
+    escribir("invalido");
+}
+si (x != 5) {
+    escribir("este si es valido");
+}
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 6 — VALIDO: Todos los operadores y delimitadores
+//  Ninguno de estos debe generar error.
+// ────────────────────────────────────────────────────────────
+
+entero op1;
+entero op2;
+op1 = 10;
+op2 = 3;
+
+op1 + op2;
+op1 - op2;
+op1 * op2;
+op1 / op2;
+op1 % op2;
+op1++;
+op2--;
+op1 == op2;
+op1 != op2;
+op1 <  op2;
+op1 >  op2;
+op1 <= op2;
+op1 >= op2;
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 7 — VALIDO: Palabras reservadas vs identificadores
+//  Las palabras reservadas son case-sensitive.
+//  Entero / ENTERO / Si / SI son IDENTIFICADORES validos,
+//  entero / si son PALABRAS RESERVADAS.
+// ────────────────────────────────────────────────────────────
+
+entero miVar;
+entero Entero;
+entero ENTERO;
+entero _contador;
+entero var123;
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 8 — VALIDO: Literales numericos
+//  Enteros y decimales bien formados. Sin errores.
+// ────────────────────────────────────────────────────────────
+
+entero n1 = 0;
+entero n2 = 42;
+entero n3 = 9999;
+deci   d1 = 3.14;
+deci   d2 = 0.5;
+deci   d3 = 100.0;
+deci   d4 = 2.718;
+
+
+// ────────────────────────────────────────────────────────────
+//  CASO 9 — VALIDO: Comentarios (deben desaparecer)
+//  Ni // ni /* */ deben generar ningun token.
+// ────────────────────────────────────────────────────────────
+
+// esto es un comentario de linea completo
+entero visible = 1; // comentario al final de linea
+
+/*
+   esto es un bloque
+   de comentario
+   multilinea
+*/
+
+entero tambienVisible = 2;
