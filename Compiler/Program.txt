@@ -1,20 +1,12 @@
-// ============================================================
-//  Program.txt — Escenarios de prueba del Analizador Lexico
-//  idealC | Ingenieria en Software
-//
-//  CUANDO MARCA ERROR:
-//    1. Caracter no reconocido (no pertenece al lenguaje)
-//    2. Cadena sin cerrar (falta la comilla de cierre)
-//    3. Decimal mal formado (punto sin digitos despues)
-//    4. Operador invalido (! sin = despues)
-//    5. Comentario de bloque sin cerrar (falta */)
-// ============================================================
-
-
 // ────────────────────────────────────────────────────────────
-//  CASO 1 — SIN ERRORES
-//  Programa completo y valido. Debe tokenizar limpio.
+//  Funcion: factorial
+//  Calcula el factorial de n de forma recursiva.
 // ────────────────────────────────────────────────────────────
+@@@
+@@
+name
+a1
+1a
 
 func entero factorial(entero n) {
     si (n <= 1) {
@@ -24,150 +16,351 @@ func entero factorial(entero n) {
     }
 }
 
-func vacio principal() {
-    entero num;
-    entero resultado;
-    deci promedio;
-    logico activo;
 
-    activo = verdadero;
-    promedio = 3.14;
-    num = 10;
-
-    resultado = factorial(num);
-    escribir("Resultado: ", resultado);
-
-    si (activo y no falso) {
-        escribir("Condicion cumplida");
+// ────────────────────────────────────────────────────────────
+//  Funcion: esPar
+//  Retorna verdadero si n es par, falso si es impar.
+// ────────────────────────────────────────────────────────────
+func logico esPar(entero n) {
+    si (n % 2 == 0) {
+        retornar verdadero;
+    } sino {
+        retornar falso;
     }
+}
 
+
+// ────────────────────────────────────────────────────────────
+//  Funcion: sumarRango
+//  Suma todos los enteros desde 1 hasta limite.
+// ────────────────────────────────────────────────────────────
+func entero sumarRango(entero limite) {
+    entero acumulado;
+    entero i;// ============================================================
+//  Program_valido.txt
+//  Analizador Lexico — idealC
+//  Ingenieria en Software
+//
+//  Programa de demostracion: codigo 100% valido.
+//  Resultado esperado: 0 errores lexicos.
+//
+//  Contiene:
+//    - Declaracion y uso de todas las variables (tipos)
+//    - Funciones con parametros y retorno
+//    - Estructuras de control: si/sino, para, mientras
+//    - Operadores: aritmeticos, relacionales, logicos
+//    - Literales: enteros, decimales, cadenas
+//    - Comentarios de linea y de bloque
+//    - Palabras reservadas vs identificadores
+// ============================================================
+
+
+// ────────────────────────────────────────────────────────────
+//  Funcion: factorial
+//  Calcula el factorial de n de forma recursiva.
+// ────────────────────────────────────────────────────────────
+func entero factorial(entero n) {
+    si (n <= 1) {
+        retornar 1;
+    } sino {
+        retornar mul(n, factorial(n - 1));
+    }
+}
+
+
+// ────────────────────────────────────────────────────────────
+//  Funcion: esPar
+//  Retorna verdadero si n es par, falso si es impar.
+// ────────────────────────────────────────────────────────────
+func logico esPar(entero n) {
+    si (n % 2 == 0) {
+        retornar verdadero;
+    } sino {
+        retornar falso;
+    }
+}
+
+
+// ────────────────────────────────────────────────────────────
+//  Funcion: sumarRango
+//  Suma todos los enteros desde 1 hasta limite.
+// ────────────────────────────────────────────────────────────
+func entero sumarRango(entero limite) {
+    entero acumulado;
     entero i;
-    para (i = 0; i < 5; i++) {
-        escribir(i);
+    acumulado = 0;
+
+    para (i = 1; i <= limite; i++) {
+        acumulado = acumulado + i;
     }
 
-    mientras (num > 0) {
-        num--;
+    retornar acumulado;
+}
+
+
+// ────────────────────────────────────────────────────────────
+//  Funcion: contarHasta
+//  Muestra los numeros desde inicio hasta 0 usando mientras.
+// ────────────────────────────────────────────────────────────
+func vacio contarHasta(entero inicio) {
+    mientras (inicio > 0) {
+        escribir(inicio);
+        inicio--;
     }
+}
+
+
+// ────────────────────────────────────────────────────────────
+//  Funcion: principal
+//  Punto de entrada del programa. Usa todas las construcciones
+//  del lenguaje idealC.
+// ────────────────────────────────────────────────────────────
+func vacio principal() {
+
+    /* Declaracion de variables de todos los tipos */
+    entero  numero;
+    entero  resultado;
+    entero  suma;
+    deci    promedio;
+    deci    tasa;
+    cad     mensaje;
+    carac   inicial;
+    logico  activo;
+    logico  par;
+
+    /* Asignacion de valores iniciales */
+    numero   = 6;
+    promedio = 4.75;
+    tasa     = 0.15;
+    activo   = verdadero;
 
     limpPantalla();
+
+    // Uso de factorial
+    escribir("Calculando factorial...");
+    resultado = factorial(numero);
+    escribir(resultado);
+
+    // Uso de sumarRango
+    suma = sumarRango(10);
+    escribir("Suma del 1 al 10:");
+    escribir(suma);
+
+    // Condicional con operadores logicos
+    par = esPar(numero);
+    si (par y activo) {
+        escribir("El numero es par y el sistema esta activo");
+    } sino {
+        escribir("Condicion no cumplida");
+    }
+
+    // Condicional con no
+    si (no falso) {
+        escribir("Negacion de falso es verdadero");
+    }
+
+    // Operadores relacionales completos
+    si (numero >= 5 y numero <= 10) {
+        escribir("Numero en rango valido");
+    }
+
+    si (resultado != 0) {
+        escribir("El factorial no es cero");
+    }
+
+    // Ciclo para con operadores aritmeticos
+    entero i;
+    entero cuadrado;
+    para (i = 1; i <= 5; i++) {
+        cuadrado = mul(i, i);
+        escribir(cuadrado);
+    }
+
+    // Ciclo mientras
+    contarHasta(3);
+
+    // Operadores aritmeticos directos
+    entero a;
+    entero b;
+    entero mod;
+    a   = 17;
+    b   = 5;
+    mod = a % b;
+    escribir(mod);
+
+    // Incremento y decremento
+    a++;
+    b--;
+    escribir(a);
+    escribir(b);
+
+    // Operadores de igualdad
+    si (a == 18) {
+        escribir("a vale 18");
+    }
+
+    si (b != 10) {
+        escribir("b no vale 10");
+    }
+
+    // Uso de o
+    si (activo o falso) {
+        escribir("Al menos una condicion es verdadera");
+    }
+
+    // Literales numericos variados
+    entero n1;
+    entero n2;
+    deci   d1;
+    deci   d2;
+    n1 = 0;
+    n2 = 9999;
+    d1 = 3.14;
+    d2 = 2.718;
+    escribir(n1);
+    escribir(n2);
+    escribir(d1);
+    escribir(d2);
+
+    // Cadenas de texto
+    escribir("Fin del programa");
+    limpPantalla();
+}
+    acumulado = 0;
+
+    para (i = 1; i <= limite; i++) {
+        acumulado = acumulado + i;
+    }
+
+    retornar acumulado;
 }
 
 
 // ────────────────────────────────────────────────────────────
-//  CASO 2 — ERROR: Caracteres no reconocidos
-//  @ $ # ^ no pertenecen al alfabeto de idealC.
-//  El lexer emite ERROR por cada uno y continua.
+//  Funcion: contarHasta
+//  Muestra los numeros desde inicio hasta 0 usando mientras.
 // ────────────────────────────────────────────────────────────
-
-entero x = @5;
-cad nombre = $resultado;
-deci y = 2.0 # 3.0;
-entero z = 10 ^ 2;
-
-
-// ────────────────────────────────────────────────────────────
-//  CASO 3 — ERROR: Cadena sin cerrar
-//  Le falta la comilla de cierre al final.
-//  El lexer detecta el salto de linea o EOF y marca error.
-// ────────────────────────────────────────────────────────────
-
-cad mensaje = "Hola mundo;
-cad otro    = "Este si cierra bien";
-cad roto    = "Sin cierre al final
-
-
-// ────────────────────────────────────────────────────────────
-//  CASO 4 — ERROR: Decimal mal formado
-//  Tiene punto decimal pero no tiene digitos despues del punto.
-//  Segun el AFD3, q2 requiere al menos un digito para aceptar.
-// ────────────────────────────────────────────────────────────
-
-deci a = 3.;
-deci b = 100.;
-deci c = 0.;
-deci d = 9.9;
-
-
-// ────────────────────────────────────────────────────────────
-//  CASO 5 — ERROR: Operador ! sin =
-//  El AFD5 acepta != como OP_DISTINTO.
-//  Si ! va solo (sin = despues) es un caracter invalido.
-// ────────────────────────────────────────────────────────────
-
-si (x ! 5) {
-    escribir("invalido");
-}
-si (x != 5) {
-    escribir("este si es valido");
+func vacio contarHasta(entero inicio) {
+    mientras (inicio > 0) {
+        escribir(inicio);
+        inicio--;
+    }
 }
 
 
 // ────────────────────────────────────────────────────────────
-//  CASO 6 — VALIDO: Todos los operadores y delimitadores
-//  Ninguno de estos debe generar error.
+//  Funcion: principal
+//  Punto de entrada del programa. Usa todas las construcciones
+//  del lenguaje idealC.
 // ────────────────────────────────────────────────────────────
+func vacio principal() {
 
-entero op1;
-entero op2;
-op1 = 10;
-op2 = 3;
+    /* Declaracion de variables de todos los tipos */
+    entero  numero;
+    entero  resultado;
+    entero  suma;
+    deci    promedio;
+    deci    tasa;
+    cad     mensaje;
+    carac   inicial;
+    logico  activo;
+    logico  par;
 
-op1 + op2;
-op1 - op2;
-op1 * op2;
-op1 / op2;
-op1 % op2;
-op1++;
-op2--;
-op1 == op2;
-op1 != op2;
-op1 <  op2;
-op1 >  op2;
-op1 <= op2;
-op1 >= op2;
+    /* Asignacion de valores iniciales */
+    numero   = 6;
+    promedio = 4.75;
+    tasa     = 0.15;
+    activo   = verdadero;
 
+    limpPantalla();
 
-// ────────────────────────────────────────────────────────────
-//  CASO 7 — VALIDO: Palabras reservadas vs identificadores
-//  Las palabras reservadas son case-sensitive.
-//  Entero / ENTERO / Si / SI son IDENTIFICADORES validos,
-//  entero / si son PALABRAS RESERVADAS.
-// ────────────────────────────────────────────────────────────
+    // Uso de factorial
+    escribir("Calculando factorial...");
+    resultado = factorial(numero);
+    escribir(resultado);
 
-entero miVar;
-entero Entero;
-entero ENTERO;
-entero _contador;
-entero var123;
+    // Uso de sumarRango
+    suma = sumarRango(10);
+    escribir("Suma del 1 al 10:");
+    escribir(suma);
 
+    // Condicional con operadores logicos
+    par = esPar(numero);
+    si (par y activo) {
+        escribir("El numero es par y el sistema esta activo");
+    } sino {
+        escribir("Condicion no cumplida");
+    }
 
-// ────────────────────────────────────────────────────────────
-//  CASO 8 — VALIDO: Literales numericos
-//  Enteros y decimales bien formados. Sin errores.
-// ────────────────────────────────────────────────────────────
+    // Condicional con no
+    si (no falso) {
+        escribir("Negacion de falso es verdadero");
+    }
 
-entero n1 = 0;
-entero n2 = 42;
-entero n3 = 9999;
-deci   d1 = 3.14;
-deci   d2 = 0.5;
-deci   d3 = 100.0;
-deci   d4 = 2.718;
+    // Operadores relacionales completos
+    si (numero >= 5 y numero <= 10) {
+        escribir("Numero en rango valido");
+    }
 
+    si (resultado != 0) {
+        escribir("El factorial no es cero");
+    }
 
-// ────────────────────────────────────────────────────────────
-//  CASO 9 — VALIDO: Comentarios (deben desaparecer)
-//  Ni // ni /* */ deben generar ningun token.
-// ────────────────────────────────────────────────────────────
+    // Ciclo para con operadores aritmeticos
+    entero i;
+    entero cuadrado;
+    para (i = 1; i <= 5; i++) {
+        cuadrado = mul(i, i);
+        escribir(cuadrado);
+    }
 
-// esto es un comentario de linea completo
-entero visible = 1; // comentario al final de linea
+    // Ciclo mientras
+    contarHasta(3);
 
-/*
-   esto es un bloque
-   de comentario
-   multilinea
-*/
+    // Operadores aritmeticos directos
+    entero a;
+    entero b;
+    entero mod;
+    a   = 17;
+    b   = 5;
+    mod = a % b;
+    escribir(mod);
 
-entero tambienVisible = 2;
+    // Incremento y decremento
+    a++;
+    b--;
+    escribir(a);
+    escribir(b);
+
+    // Operadores de igualdad
+    si (a == 18) {
+        escribir("a vale 18");
+    }
+
+    si (b != 10) {
+        escribir("b no vale 10");
+    }
+
+    // Uso de o
+    si (activo o falso) {
+        escribir("Al menos una condicion es verdadera");
+    }
+
+    // Literales numericos variados
+    entero n1;
+    entero n2;
+    deci   d1;
+    deci   d2;
+    n1 = 0;
+    n2 = 9999;
+    d1 = 3.14;
+    d2 = 2.718;
+    escribir(n1);
+    escribir(n2);
+    escribir(d1);
+    escribir(d2);
+
+    // Cadenas de texto
+    escribir("Fin del programa");
+    limpPantalla();
+}

@@ -149,7 +149,7 @@ void opcion_resumen() {
     cout << "|  Total tokens reconocidos    : " << left << setw(24) << g_lex.tokens.tamanio  << "|" << endl;
     cout << "|  Total errores lexicos       : " << left << setw(24) << g_lex.errores.tamanio << "|" << endl;
     cout << "+-------------------------------------------------------+" << endl;
-    cout << "|  Palabras reservadas  (KW)   : " << left << setw(24) << kwCount    << "|" << endl;
+    cout << "|  Palabras reservadas  (PR)   : " << left << setw(24) << kwCount    << "|" << endl;
     cout << "|  Operadores           (OP)   : " << left << setw(24) << opCount    << "|" << endl;
     cout << "|  Literales            (LIT)  : " << left << setw(24) << litCount   << "|" << endl;
     cout << "|  Identificadores             : " << left << setw(24) << idCount    << "|" << endl;

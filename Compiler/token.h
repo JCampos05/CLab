@@ -13,7 +13,7 @@ enum TokenType {
     // KW — Palabras reservadas: control de flujo
     PAL_RSV_SI, PAL_RSV_SINO, PAL_RSV_PARA, PAL_RSV_MIENTRAS,
     // KW — Palabras reservadas: declaracion y retorno
-    PAL_RSV_FUNC, PAL_RSV_RETORNAR,
+    PAL_RSV_FUNC, PAL_RSV_RETORNAR, 
     // KW — Palabras reservadas: funciones de E/S
     PAL_RSV_LEER, PAL_RSV_ESCRIBIR, PAL_RSV_LIMPPANTALLA,
     // KW — Palabras reservadas: aritmetica nativa
