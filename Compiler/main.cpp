@@ -1,5 +1,7 @@
 #include "lexer.h"
 #include "token.h"
+#include "parser.h"
+#include "nodo.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -7,248 +9,193 @@
 #include <limits>
 using namespace std;
 
-//  Compilar:
-//  g++ main.cpp lexer.cpp toke.cpp -o main
-//  Estado global de la sesion
-EstadoLexer g_lex;
-bool g_analizado = false;
+//  Compilar: g++ main.cpp lexer.cpp toke.cpp nodo.cpp parser.cpp -o main
 
-//  Cabecera del sistema
+EstadoLexer  g_lex;
+EstadoParser g_parser;
+bool g_analizado = false;
+bool g_parseado  = false;
+
 void cabecera() {
     cout << "+-----------------------------------------+" << endl;
     cout << "|---| Analizador Lexico  -  idealC   |----|" << endl;
     cout << "+-----------------------------------------+" << endl;
 }
 
-//  Manejo de entrada invalida
 void entradaInvalida() {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    system("cls");
-    cout << endl;
-    cout << "  Ingrese un dato valido." << endl;
-    system("pause");
-    system("cls");
+    cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    system("cls"); cout << endl << "  Ingrese un dato valido." << endl;
+    system("pause"); system("cls");
 }
 
-//  cargarProgram — lee Program.txt y ejecuta el analisis lexico
 bool cargarProgram() {
     ifstream archivo("Program.txt");
-    if (!archivo.is_open()) {
-        cout << "  Error: No se encontro \'Program.txt\' en el directorio actual." << endl;
-        system("pause");
-        return false;
-    }
+    if (!archivo.is_open()) { cout << "  Error: No se encontro 'Program.txt'." << endl; system("pause"); return false; }
+    ostringstream ss; ss << archivo.rdbuf(); archivo.close();
+    if (g_analizado)  lexer_liberar(g_lex);
+    if (g_parseado) { parser_liberar(g_parser); g_parseado = false; }
+    lexer_init(g_lex, ss.str(), "Program.txt"); lexer_analizar(g_lex); g_analizado = true; return true;
+}
 
-    ostringstream ss;
-    ss << archivo.rdbuf();
-    archivo.close();
-
-    if (g_analizado) {
-        lexer_liberar(g_lex);
-    }
-    lexer_init(g_lex, ss.str(), "Program.txt");
-    lexer_analizar(g_lex);
-    g_analizado = true;
+bool verificarAnalisis() {
+    if (!g_analizado) { cout << endl << "  Use la opcion 1 para cargar Program.txt primero." << endl; system("pause"); return false; }
     return true;
 }
 
-//  Opcion 1 — Cargar y analizar Program.txt
+bool verificarParseado() {
+    if (!g_parseado) { cout << endl << "  Use la opcion 5 para ejecutar el analisis sintactico primero." << endl; system("pause"); return false; }
+    return true;
+}
+
 void opcion_cargar() {
-    system("cls");
-    cabecera();
-    cout << endl;
+    system("cls"); cabecera(); cout << endl;
     cout << "+--------------------------------------------------+" << endl;
     cout << "|       Analizando archivo: Program.txt            |" << endl;
-    cout << "+--------------------------------------------------+" << endl;
-    cout << endl;
-
+    cout << "+--------------------------------------------------+" << endl << endl;
     if (!cargarProgram()) return;
-
-    cout << "  Archivo analizado correctamente." << endl;
-    cout << "  Tokens encontrados : " << g_lex.tokens.tamanio  << endl;
+    cout << "  Tokens encontrados : " << g_lex.tokens.tamanio << endl;
     cout << "  Errores encontrados: " << g_lex.errores.tamanio << endl;
     system("pause");
 }
-//  Guarda — verifica que haya un analisis cargado antes de mostrar resultados
-bool verificarAnalisis() {
-    if (!g_analizado) {
-        cout << endl;
-        cout << "  No hay analisis disponible." << endl;
-        cout << "  Use la opcion 1 para cargar Program.txt primero." << endl;
-        system("pause");
-        return false;
-    }
-    return true;
-}
 
-//  Opcion 2 — Ver lista de tokens reconocidos
 void opcion_tokens() {
-    system("cls");
-    cabecera();
-    if (!verificarAnalisis()) return;
-
-    cout << endl;
-    cout << "  Fuente: " << g_lex.archivo << endl;
-    listaTokens_imprimir(g_lex.tokens);
-    system("pause");
+    system("cls"); cabecera(); if (!verificarAnalisis()) return;
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    listaTokens_imprimir(g_lex.tokens); system("pause");
 }
 
-//  Opcion 3 — Ver lista de errores lexicos con posicion
 void opcion_errores() {
-    system("cls");
-    cabecera();
-    if (!verificarAnalisis()) return;
-
-    cout << endl;
-    cout << "  Fuente: " << g_lex.archivo << endl;
-
-    if (listaErrores_hayErrores(g_lex.errores)) {
-        listaErrores_imprimir(g_lex.errores);
-    } else {
-        cout << "+-----------------------------------------------+" << endl;
-        cout << "|         LISTA DE ERRORES LEXICOS              |" << endl;
-        cout << "+-----------------------------------------------+" << endl;
-        cout << "|  Sin errores lexicos en el codigo analizado.  |" << endl;
-        cout << "+-----------------------------------------------+" << endl;
-    }
+    system("cls"); cabecera(); if (!verificarAnalisis()) return;
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    if (listaErrores_hayErrores(g_lex.errores)) { listaErrores_imprimir(g_lex.errores); }
+    else { cout << "|  Sin errores lexicos en el codigo analizado.  |" << endl; }
     system("pause");
 }
 
-//  Opcion 4 — Resumen del analisis
 void opcion_resumen() {
-    system("cls");
-    cabecera();
-    if (!verificarAnalisis()) return;
-
-    int kwCount    = 0;
-    int opCount    = 0;
-    int litCount   = 0;
-    int idCount    = 0;
-    int delimCount = 0;
-    int errCount   = 0;
-
-    NodoToken* nodo = g_lex.tokens.cabeza;
-    while (nodo != nullptr) {
-        TokenType t = nodo->token.tipo;
-        if      (t >= PAL_RSV_ENTERO  && t <= PAL_RSV_NO)         kwCount++;
-        else if (t >= OP_SUMA    && t <= OP_ASIGNACION)  opCount++;
-        else if (t >= LIT_ENTERO && t <= LIT_CADENA)     litCount++;
-        else if (t == IDENTIFICADOR)                     idCount++;
-        else if (t >= PUNTO_COMA && t <= LLAVE_CIE)      delimCount++;
-        else if (t == TOKEN_ERROR)                       errCount++;
-        nodo = nodo->siguiente;
-    }
-
+    system("cls"); cabecera(); if (!verificarAnalisis()) return;
+    int kw=0,op=0,lit=0,id=0,del=0,err=0;
+    NodoToken* n = g_lex.tokens.cabeza;
+    while(n){ TokenType t=n->token.tipo;
+        if(t>=PAL_RSV_ENTERO&&t<=PAL_RSV_NO) kw++;
+        else if(t>=OP_SUMA&&t<=OP_ASIGNACION) op++;
+        else if(t>=LIT_ENTERO&&t<=LIT_CADENA) lit++;
+        else if(t==IDENTIFICADOR) id++;
+        else if(t>=PUNTO_COMA&&t<=LLAVE_CIE) del++;
+        else if(t==TOKEN_ERROR) err++;
+        n=n->siguiente; }
     cout << endl;
     cout << "+-------------------------------------------------------+" << endl;
     cout << "|              RESUMEN DEL ANALISIS LEXICO              |" << endl;
     cout << "+-------------------------------------------------------+" << endl;
-    cout << "|  Fuente   : " << left << setw(43) << g_lex.archivo    << "|" << endl;
+    cout << "|  Fuente   : " << left << setw(43) << g_lex.archivo << "|" << endl;
     cout << "+-------------------------------------------------------+" << endl;
     cout << "|  Total tokens reconocidos    : " << left << setw(24) << g_lex.tokens.tamanio  << "|" << endl;
     cout << "|  Total errores lexicos       : " << left << setw(24) << g_lex.errores.tamanio << "|" << endl;
     cout << "+-------------------------------------------------------+" << endl;
-    cout << "|  Palabras reservadas  (PR)   : " << left << setw(24) << kwCount    << "|" << endl;
-    cout << "|  Operadores           (OP)   : " << left << setw(24) << opCount    << "|" << endl;
-    cout << "|  Literales            (LIT)  : " << left << setw(24) << litCount   << "|" << endl;
-    cout << "|  Identificadores             : " << left << setw(24) << idCount    << "|" << endl;
-    cout << "|  Delimitadores               : " << left << setw(24) << delimCount << "|" << endl;
-    cout << "|  Tokens de error             : " << left << setw(24) << errCount   << "|" << endl;
+    cout << "|  Palabras reservadas  (PR)   : " << left << setw(24) << kw  << "|" << endl;
+    cout << "|  Operadores           (OP)   : " << left << setw(24) << op  << "|" << endl;
+    cout << "|  Literales            (LIT)  : " << left << setw(24) << lit << "|" << endl;
+    cout << "|  Identificadores             : " << left << setw(24) << id  << "|" << endl;
+    cout << "|  Delimitadores               : " << left << setw(24) << del << "|" << endl;
+    cout << "|  Tokens de error             : " << left << setw(24) << err << "|" << endl;
     cout << "+-------------------------------------------------------+" << endl;
-
-    if (g_lex.errores.tamanio == 0)
-        cout << "|  Estado : CODIGO VALIDO  - sin errores lexicos.       |" << endl;
-    else
-        cout << "|  Estado : CODIGO CON ERRORES - revise la opcion 3.    |" << endl;
-
+    cout << (g_lex.errores.tamanio==0 ? "|  Estado : CODIGO VALIDO  - sin errores lexicos.       |" : "|  Estado : CODIGO CON ERRORES - revise la opcion 3.    |") << endl;
     cout << "+-------------------------------------------------------+" << endl;
     system("pause");
 }
 
+void opcion_sintactico() {
+    system("cls"); cabecera(); if (!verificarAnalisis()) return;
+    if (listaErrores_hayErrores(g_lex.errores)) {
+        cout << endl << "+-------------------------------------------------------------+" << endl;
+        cout << "|  ADVERTENCIA: el lexico reporto errores en Program.txt.     |" << endl;
+        cout << "|  El analisis sintactico puede ser impreciso.                |" << endl;
+        cout << "+-------------------------------------------------------------+" << endl << endl; }
+    if (g_parseado) { parser_liberar(g_parser); g_parseado = false; }
+    cout << endl << "+--------------------------------------------------+" << endl;
+    cout << "|     Ejecutando analisis sintactico...            |" << endl;
+    cout << "+--------------------------------------------------+" << endl << endl;
+    parser_init(g_parser, g_lex.tokens); parser_analizar(g_parser); g_parseado = true;
+    parser_imprimirResultado(g_parser);
+    cout << "  Errores sintacticos encontrados: " << g_parser.errores.tamanio << endl;
+    system("pause");
+}
+
+void opcion_errores_sint() {
+    system("cls"); cabecera(); if (!verificarParseado()) return;
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    if (listaErrores_hayErrores(g_parser.errores)) { listaErrores_imprimir(g_parser.errores); }
+    else { cout << "+---------------------------------------------------+" << endl;
+           cout << "|  Sin errores sintacticos en el codigo analizado.  |" << endl;
+           cout << "+---------------------------------------------------+" << endl; }
+    system("pause");
+}
+
+void opcion_ast() {
+    system("cls"); cabecera(); if (!verificarParseado()) return;
+    if (!g_parser.raiz) { cout << endl << "  El arbol AST esta vacio." << endl; system("pause"); return; }
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    if (listaErrores_hayErrores(g_parser.errores))
+        cout << "  Nota: arbol puede estar incompleto (" << g_parser.errores.tamanio << " error(es))." << endl;
+    nodo_imprimir(g_parser.raiz); system("pause");
+}
+
 void interfaz() {
-    int opc    = 0;
-    int seguir = 1;
-
-    system("cls");
-
+    int opc=0, seguir=1; system("cls");
     do {
         do {
-            system("cls");
-            cabecera();
-            cout << endl;
-            cout << "  Seleccione una opcion:" << endl;
-            cout << endl;
-
+            system("cls"); cabecera();
+            cout << endl << "  Seleccione una opcion:" << endl << endl;
             cout << "+---------------------------------------------------------------------+" << endl;
             if (g_analizado) {
-                cout << "|  Fuente activa : " << left << setw(52) << g_lex.archivo            << "|" << endl;
-                cout << "|  Tokens        : " << left << setw(52) << g_lex.tokens.tamanio     << "|" << endl;
-                cout << "|  Errores       : " << left << setw(52) << g_lex.errores.tamanio    << "|" << endl;
-            } else {
-                cout << "|  Sin analisis cargado. Use la opcion 1 para cargar Program.txt.  |" << endl;
-            }
+                cout << "|  Fuente activa : " << left << setw(52) << g_lex.archivo         << "|" << endl;
+                cout << "|  Tokens        : " << left << setw(52) << g_lex.tokens.tamanio  << "|" << endl;
+                cout << "|  Err. lexicos  : " << left << setw(52) << g_lex.errores.tamanio << "|" << endl;
+                if (g_parseado) {
+                    string st=(g_parser.errores.tamanio==0)?"OK - sin errores sintacticos":to_string(g_parser.errores.tamanio)+" error(es) sintactico(s)";
+                    cout << "|  Sint.         : " << left << setw(52) << st << "|" << endl;
+                } else { cout << "|  Sint.         : " << left << setw(52) << "Sin analizar (use opcion 5)" << "|" << endl; }
+            } else { cout << "|  Sin analisis cargado. Use la opcion 1 para cargar Program.txt.  |" << endl; }
             cout << "+---------------------------------------------------------------------+" << endl;
-            cout << "|  1) Cargar y analizar Program.txt                                   |" << endl;
+            cout << "|  1) Cargar y analizar Program.txt  (lexico)                         |" << endl;
             cout << "|  2) Ver lista de Tokens reconocidos                                 |" << endl;
             cout << "|  3) Ver lista de Errores lexicos con posicion                       |" << endl;
-            cout << "|  4) Ver resumen del analisis                                        |" << endl;
-            cout << "|  5) Salir                                                           |" << endl;
+            cout << "|  4) Ver resumen del analisis lexico                                 |" << endl;
+            cout << "|  5) Ejecutar analisis sintactico                                    |" << endl;
+            cout << "|  6) Ver Errores sintacticos                                         |" << endl;
+            cout << "|  7) Ver Arbol de Sintaxis Abstracta (AST)                           |" << endl;
+            cout << "|  8) Salir                                                           |" << endl;
             cout << "+---------------------------------------------------------------------+" << endl;
-            cout << endl;
-            cout << "  Opcion: ";
-            cin >> opc;
-            cout << endl;
-
-            if (cin.fail()) {
-                entradaInvalida();
-                continue;
-            }
-
-            switch (opc) {
-                case 1: opcion_cargar();  break;
-                case 2: opcion_tokens();  break;
-                case 3: opcion_errores(); break;
-                case 4: opcion_resumen(); break;
-                case 5: break;
-                default: break;
-            }
-
-        } while (opc <= 0 || opc > 5);
-
-        if (opc == 5) break;
-
+            cout << endl << "  Opcion: "; cin >> opc; cout << endl;
+            if (cin.fail()) { entradaInvalida(); continue; }
+            switch(opc) {
+                case 1: opcion_cargar();       break;
+                case 2: opcion_tokens();       break;
+                case 3: opcion_errores();      break;
+                case 4: opcion_resumen();      break;
+                case 5: opcion_sintactico();   break;
+                case 6: opcion_errores_sint(); break;
+                case 7: opcion_ast();          break;
+                case 8: break; default: break; }
+        } while (opc<=0 || opc>8);
+        if (opc==8) break;
         do {
-            system("cls");
-            cabecera();
-            cout << endl;
-            cout << "  Desea realizar otra consulta?  1) Si    2) No : ";
-            cin >> seguir;
-            cout << endl;
-
-            if (cin.fail()) {
-                entradaInvalida();
-            }
-        } while (cin.fail() || (seguir != 1 && seguir != 2));
-
-        system("cls");
-        opc = 0;
-
-    } while (seguir == 1);
+            system("cls"); cabecera();
+            cout << endl << "  Desea realizar otra consulta?  1) Si    2) No : ";
+            cin >> seguir; cout << endl;
+            if (cin.fail()) entradaInvalida();
+        } while (cin.fail() || (seguir!=1 && seguir!=2));
+        system("cls"); opc=0;
+    } while (seguir==1);
 }
 
 int main() {
     interfaz();
-
-    if (g_analizado) {
-        lexer_liberar(g_lex);
-    }
-
+    if (g_analizado) lexer_liberar(g_lex);
+    if (g_parseado)  parser_liberar(g_parser);
     system("cls");
-    cout << endl;
-    cout << "  Hasta la proxima..." << endl;
-    cout << "  Pero todo depende de lo que diga el autor..." << endl;
-    cout << endl;
-    system("pause");
-    return 0;
+    cout << endl << "  Hasta la proxima..." << endl;
+    cout << "  Pero todo depende de lo que diga el autor..." << endl << endl;
+    system("pause"); return 0;
 }

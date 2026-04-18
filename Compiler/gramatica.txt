@@ -1,0 +1,215 @@
+#    idealC — Gramática Libre de Contexto (BNF Extendida)
+#    Notación:
+#    ::=          define como
+#    |            alternativa
+#    { X }        repetición cero o más veces de X
+#    [ X ]        X es opcional (cero o una vez)
+#    ( X )        agrupación
+#    'palabra'    terminal literal
+#    <NOMBRE>     no-terminal
+#    MAYUSC       token producido por el léxico (terminal)
+
+
+
+#    1. PROGRAMA
+
+<programa>
+    ::= { <declaracion> }
+
+<declaracion>
+    ::= <declFunc>
+        | <declVariable>
+
+
+#    2. FUNCIONES
+
+<declFunc>
+    ::= 'func' <tipo> IDENTIFICADOR '(' <params> ')' <bloque>
+<params>
+    ::= <param> { ',' <param> }
+        | ε
+<param>
+    ::= <tipo> IDENTIFICADOR
+
+
+#   3. TIPOS DE DATO
+<tipo>
+    ::= 'entero'
+        | 'deci'
+        | 'carac'
+        | 'cad'
+        | 'logico'
+        | 'vacio'
+
+
+#   4. BLOQUE Y SENTENCIAS
+
+<bloque>
+    ::= '{' { <sentencia> } '}'
+<sentencia>
+    ::= <declVariable>
+        | <asignacion>
+        | <llamadaStmt>
+        | <sentSi>
+        | <sentPara>
+        | <sentMientras>
+        | <sentRetornar>
+        | <sentEscribir>
+        | <sentLeer>
+        | <sentLimpPantalla>
+        | <incDecStmt>
+
+
+#   5. DECLARACIÓN DE VARIABLES
+
+<declVariable>
+    ::= <tipo> <listaDecl> ';'
+<listaDecl>
+    ::= <unaDecl> { ',' <unaDecl> }
+<unaDecl>
+    ::= IDENTIFICADOR [ '=' <expresion> ]
+
+
+#   6. ASIGNACIÓN
+
+<asignacion>
+    ::= IDENTIFICADOR '=' <expresion> ';'
+
+
+#   7. LLAMADA A FUNCIÓN (como sentencia)
+
+<llamadaStmt>
+    ::= IDENTIFICADOR '(' <args> ')' ';'
+
+
+#   8. INCREMENTO / DECREMENTO (como sentencia standalone)
+
+<incDecStmt>
+    ::= IDENTIFICADOR '++' ';'
+        | IDENTIFICADOR '--' ';'
+
+
+#    9. ESTRUCTURAS DE CONTROL
+
+<sentSi>
+    ::= 'si' '(' <expresion> ')' <bloque> [ 'sino' <bloque> ]
+<sentPara>
+    ::= 'para' '(' <tipo> IDENTIFICADOR '=' <expresion> ';'
+                    <expresion> ';'
+                    IDENTIFICADOR ( '++' | '--' )
+                ')' <bloque>
+<sentMientras>
+    ::= 'mientras' '(' <expresion> ')' <bloque>
+
+
+#   10. RETORNO
+
+<sentRetornar>
+    ::= 'retornar' <expresion> ';'    -- función de tipo no-vacio
+        | 'retornar' ';'                -- función de tipo vacio
+
+#  Nota semántica: la presencia o ausencia de <expresion> depende del tipo de
+#  retorno declarado en la función contenedora. Esta restricción no puede
+#  expresarse en la gramática libre de contexto — se verifica en el analizador
+#  semántico. El parser acepta ambas formas sintácticamente.
+
+
+#   11. ENTRADA / SALIDA
+
+<sentEscribir>
+    ::= 'escribir' '(' <args> ')' ';'
+<sentLeer>
+    ::= 'leer' '(' IDENTIFICADOR ')' ';'
+<sentLimpPantalla>
+    ::= 'limpPantalla' '(' ')' ';'
+
+
+#   12. ARGUMENTOS REALES
+
+<args>
+    ::= <expresion> { ',' <expresion> }
+        | ε
+
+
+#   13. EXPRESIONES  (jerarquía de precedencia, de menor a mayor)
+
+#  Categoría: Lógicos  —  Nivel 1 (menor precedencia)
+# ─────────────────────────────────────────────────────
+#  Operadores: y  o
+<expresion>
+    ::= <expLogica>
+<expLogica>
+    ::= <expRelacional> { ( 'y' | 'o' ) <expRelacional> }
+
+
+#  Categoría: Relacionales  —  Nivel 2
+#  ─────────────────────────────────────────────────────
+#  Operadores: <  >  <=  >=  ==  !=
+<expRelacional>
+    ::= <expAritm> [ <opRelacional> <expAritm> ]
+<opRelacional>
+    ::= '<' | '>' | '<=' | '>=' | '==' | '!='
+
+
+#  Categoría: Aritméticos  —  Nivel 3 y 4
+#  ─────────────────────────────────────────────────────
+#  Operadores: +  -  (aditivos, nivel 3)   *  /  %  (multiplicativos, nivel 4)
+<expAritm>
+    ::= <term> { ( '+' | '-' ) <term> }
+<term>
+    ::= <unario> { ( '*' | '/' | '%' ) <unario> }
+
+
+#  Categoría: Unarios  —  Nivel 5
+#  ─────────────────────────────────────────────────────
+#  Operadores: no  (negación lógica)   -  (negación aritmética)   ++  --
+<unario>
+    ::= 'no' <unario>
+        | '-' <unario>
+        | <primario> [ '++' | '--' ]
+
+
+#  Primario  —  Nivel 6 (mayor precedencia)
+#  ─────────────────────────────────────────────────────
+<primario>
+    ::= LIT_ENTERO
+        | LIT_DECIMAL
+        | LIT_CADENA
+        | 'verdadero'
+        | 'falso'
+        | IDENTIFICADOR [ '(' <args> ')' ]
+        | '(' <expresion> ')'
+
+
+#  14. TOKENS TERMINALES (producidos por el analizador léxico)
+
+#  Literales
+#  ──────────────────────────────────────────────
+#  LIT_ENTERO        -> dígito+
+#  LIT_DECIMAL       -> dígito+ '.' dígito+
+#  LIT_CADENA        -> '"' { cualquier_carácter_excepto_" } '"'
+
+#  Identificador
+#  ──────────────────────────────────────────────
+#  IDENTIFICADOR     -> (letra | '_') { letra | dígito | '_' }
+
+#  Palabras reservadas (se reconocen antes que IDENTIFICADOR)
+#  ──────────────────────────────────────────────
+#  Tipos de dato:    entero  deci  carac  cad  logico  vacio
+#  Booleanos:        verdadero  falso
+#  Control:          si  sino  para  mientras
+#  Función:          func  retornar
+#  E/S:              leer  escribir  limpPantalla
+#  Lógicos:          y  o  no
+
+#  Operadores
+#  ──────────────────────────────────────────────
+#  Aritméticos:      +  -  *  /  %
+#  Relacionales:     <  >  <=  >=  ==  !=
+#  Lógicos:          y  o  no
+#  Unarios:          -  (negación aritmética)   ++  --
+#  Asignación:       =
+
+#  Delimitadores
+#  ──────────────────────────────────────────────
+#  ;  ,  (  )  {  }
