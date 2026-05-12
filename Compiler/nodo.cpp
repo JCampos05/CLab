@@ -9,6 +9,7 @@ NodoAST* nodo_crear(TipoNodo tipo, string valor, int linea, int columna) {
     n->tipo = tipo;
     n->valor = valor;
     n->valorTipo = "";
+    n->tipoAtrib = "";
     n->linea = linea;
     n->columna = columna;
     n->izq = nullptr;
@@ -72,7 +73,7 @@ static string sangria(int profundidad, bool esUltimo) {
 }
 
 //  nodo_imprimir_rec — recorrido preorden con formato de árbol
-static void nodo_imprimir_rec(const NodoAST* nodo, int prof, bool esUltimo) {
+static void nodo_imprimir_rec(const NodoAST* nodo, int prof, bool esUltimo, bool mostrarAtribs) {
     if (nodo == nullptr) return;
 
     // ── Línea principal del nodo ─────────────────────────────────────────────
@@ -86,6 +87,10 @@ static void nodo_imprimir_rec(const NodoAST* nodo, int prof, bool esUltimo) {
     // Mostrar tipo de dato cuando aplica (DECL_VAR, PARAM, FUNC)
     if (!nodo->valorTipo.empty())
         cout << " : " << nodo->valorTipo;
+
+    // Mostrar atributo semantico calculado por el analizador semantico
+    if (mostrarAtribs && !nodo->tipoAtrib.empty())
+        cout << " {" << nodo->tipoAtrib << "}";
 
     // Mostrar posición en código fuente
     cout << "  (L" << nodo->linea << ",C" << nodo->columna << ")";
@@ -131,9 +136,9 @@ static void nodo_imprimir_rec(const NodoAST* nodo, int prof, bool esUltimo) {
             cout << sangria(prof + 1, hijoActual == totalHijos);
             cout << etiqueta << "\n";
             // imprimir el hijo con un nivel más de profundidad
-            nodo_imprimir_rec(nodo->izq, prof + 2, true);
+            nodo_imprimir_rec(nodo->izq, prof + 2, true, mostrarAtribs);
         } else {
-            nodo_imprimir_rec(nodo->izq, prof + 1, hijoActual == totalHijos);
+            nodo_imprimir_rec(nodo->izq, prof + 1, hijoActual == totalHijos, mostrarAtribs);
         }
     }
 
@@ -151,9 +156,9 @@ static void nodo_imprimir_rec(const NodoAST* nodo, int prof, bool esUltimo) {
         if (!etiqueta.empty()) {
             cout << sangria(prof + 1, hijoActual == totalHijos);
             cout << etiqueta << "\n";
-            nodo_imprimir_rec(nodo->der, prof + 2, true);
+            nodo_imprimir_rec(nodo->der, prof + 2, true, mostrarAtribs);
         } else {
-            nodo_imprimir_rec(nodo->der, prof + 1, hijoActual == totalHijos);
+            nodo_imprimir_rec(nodo->der, prof + 1, hijoActual == totalHijos, mostrarAtribs);
         }
     }
 
@@ -168,28 +173,34 @@ static void nodo_imprimir_rec(const NodoAST* nodo, int prof, bool esUltimo) {
         if (!etiqueta.empty()) {
             cout << sangria(prof + 1, hijoActual == totalHijos);
             cout << etiqueta << "\n";
-            nodo_imprimir_rec(nodo->extra, prof + 2, true);
+            nodo_imprimir_rec(nodo->extra, prof + 2, true, mostrarAtribs);
         } else {
-            nodo_imprimir_rec(nodo->extra, prof + 1, hijoActual == totalHijos);
+            nodo_imprimir_rec(nodo->extra, prof + 1, hijoActual == totalHijos, mostrarAtribs);
         }
     }
 
     // siguiente se imprime como hermano al mismo nivel (lista enlazada)
     if (tieneSig) {
-        nodo_imprimir_rec(nodo->siguiente, prof, false);
+        nodo_imprimir_rec(nodo->siguiente, prof, false, mostrarAtribs);
     }
 }
 
 //  nodo_imprimir — punto de entrada público
-void nodo_imprimir(const NodoAST* nodo, int profundidad) {
+void nodo_imprimir(const NodoAST* nodo, int profundidad, bool mostrarAtribs) {
     if (nodo == nullptr) {
         cout << "(arbol vacio)\n";
         return;
     }
     cout << "\n";
-    cout << "+-----------------------------------------------------+\n";
-    cout << "|         Arbol de Sintaxis Abstracta (AST)           |\n";
-    cout << "+-----------------------------------------------------+\n";
-    nodo_imprimir_rec(nodo, profundidad, true);
+    if (mostrarAtribs) {
+        cout << "+-----------------------------------------------------+\n";
+        cout << "|     AST con atributos semanticos de tipo {T}        |\n";
+        cout << "+-----------------------------------------------------+\n";
+    } else {
+        cout << "+-----------------------------------------------------+\n";
+        cout << "|         Arbol de Sintaxis Abstracta (AST)           |\n";
+        cout << "+-----------------------------------------------------+\n";
+    }
+    nodo_imprimir_rec(nodo, profundidad, true, mostrarAtribs);
     cout << "\n";
 }

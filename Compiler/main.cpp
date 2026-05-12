@@ -2,6 +2,7 @@
 #include "token.h"
 #include "parser.h"
 #include "nodo.h"
+#include "semantico.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -9,12 +10,14 @@
 #include <limits>
 using namespace std;
 
-//  Compilar: g++ main.cpp lexer.cpp toke.cpp nodo.cpp parser.cpp -o main
+//  Compilar: g++ main.cpp lexer.cpp toke.cpp nodo.cpp parser.cpp semantico.cpp -o main
 
-EstadoLexer  g_lex;
-EstadoParser g_parser;
-bool g_analizado = false;
-bool g_parseado  = false;
+EstadoLexer    g_lex;
+EstadoParser   g_parser;
+EstadoSemantico g_sem;
+bool g_analizado   = false;
+bool g_parseado    = false;
+bool g_semanticado = false;
 
 void cabecera() {
     cout << "+-----------------------------------------+" << endl;
@@ -32,8 +35,9 @@ bool cargarProgram() {
     ifstream archivo("Program.txt");
     if (!archivo.is_open()) { cout << "  Error: No se encontro 'Program.txt'." << endl; system("pause"); return false; }
     ostringstream ss; ss << archivo.rdbuf(); archivo.close();
-    if (g_analizado)  lexer_liberar(g_lex);
-    if (g_parseado) { parser_liberar(g_parser); g_parseado = false; }
+    if (g_analizado)   lexer_liberar(g_lex);
+    if (g_parseado)  { parser_liberar(g_parser);   g_parseado    = false; }
+    if (g_semanticado) { semantico_liberar(g_sem); g_semanticado = false; }
     lexer_init(g_lex, ss.str(), "Program.txt"); lexer_analizar(g_lex); g_analizado = true; return true;
 }
 
@@ -44,6 +48,11 @@ bool verificarAnalisis() {
 
 bool verificarParseado() {
     if (!g_parseado) { cout << endl << "  Use la opcion 5 para ejecutar el analisis sintactico primero." << endl; system("pause"); return false; }
+    return true;
+}
+
+bool verificarSemanticado() {
+    if (!g_semanticado) { cout << endl << "  Use la opcion 8 para ejecutar el analisis semantico primero." << endl; system("pause"); return false; }
     return true;
 }
 
@@ -138,7 +147,52 @@ void opcion_ast() {
     cout << endl << "  Fuente: " << g_lex.archivo << endl;
     if (listaErrores_hayErrores(g_parser.errores))
         cout << "  Nota: arbol puede estar incompleto (" << g_parser.errores.tamanio << " error(es))." << endl;
-    nodo_imprimir(g_parser.raiz); system("pause");
+    nodo_imprimir(g_parser.raiz, 0, false); system("pause");
+}
+
+void opcion_ast_sem() {
+    system("cls"); cabecera(); if (!verificarSemanticado()) return;
+    if (!g_parser.raiz) { cout << endl << "  El arbol AST esta vacio." << endl; system("pause"); return; }
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    if (listaErrores_hayErrores(g_sem.errores))
+        cout << "  Nota: se encontraron " << g_sem.errores.tamanio << " error(es) semantico(s)." << endl;
+    nodo_imprimir(g_parser.raiz, 0, true); system("pause");
+}
+
+void opcion_semantico() {
+    system("cls"); cabecera(); if (!verificarParseado()) return;
+    if (listaErrores_hayErrores(g_parser.errores)) {
+        cout << endl << "+------------------------------------------------------------+" << endl;
+        cout << "|  ADVERTENCIA: el parser reporto errores en Program.txt.    |" << endl;
+        cout << "|  El analisis semantico puede ser impreciso o incompleto.   |" << endl;
+        cout << "+------------------------------------------------------------+" << endl << endl; }
+    if (g_semanticado) { semantico_liberar(g_sem); g_semanticado = false; }
+    cout << endl << "+--------------------------------------------------+" << endl;
+    cout << "|     Ejecutando analisis semantico...             |" << endl;
+    cout << "+--------------------------------------------------+" << endl << endl;
+    semantico_init(g_sem, g_parser.raiz);
+    semantico_analizar(g_sem);
+    g_semanticado = true;
+    semantico_imprimirResultado(g_sem);
+    cout << "  Errores semanticos encontrados: " << g_sem.errores.tamanio << endl;
+    system("pause");
+}
+
+void opcion_errores_sem() {
+    system("cls"); cabecera(); if (!verificarSemanticado()) return;
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    if (listaErrores_hayErrores(g_sem.errores)) { listaErrores_imprimir(g_sem.errores); }
+    else { cout << "+---------------------------------------------------+" << endl;
+           cout << "|  Sin errores semanticos en el codigo analizado.   |" << endl;
+           cout << "+---------------------------------------------------+" << endl; }
+    system("pause");
+}
+
+void opcion_tabla_simbolos() {
+    system("cls"); cabecera(); if (!verificarSemanticado()) return;
+    cout << endl << "  Fuente: " << g_lex.archivo << endl;
+    semantico_imprimirTabla(g_sem);
+    system("pause");
 }
 
 void interfaz() {
@@ -156,6 +210,10 @@ void interfaz() {
                     string st=(g_parser.errores.tamanio==0)?"OK - sin errores sintacticos":to_string(g_parser.errores.tamanio)+" error(es) sintactico(s)";
                     cout << "|  Sint.         : " << left << setw(52) << st << "|" << endl;
                 } else { cout << "|  Sint.         : " << left << setw(52) << "Sin analizar (use opcion 5)" << "|" << endl; }
+                if (g_semanticado) {
+                    string ss2=(g_sem.errores.tamanio==0)?"OK - sin errores semanticos":to_string(g_sem.errores.tamanio)+" error(es) semantico(s)";
+                    cout << "|  Sem.          : " << left << setw(52) << ss2 << "|" << endl;
+                } else { cout << "|  Sem.          : " << left << setw(52) << "Sin analizar (use opcion 8)" << "|" << endl; }
             } else { cout << "|  Sin analisis cargado. Use la opcion 1 para cargar Program.txt.  |" << endl; }
             cout << "+---------------------------------------------------------------------+" << endl;
             cout << "|  1) Cargar y analizar Program.txt  (lexico)                         |" << endl;
@@ -164,22 +222,30 @@ void interfaz() {
             cout << "|  4) Ver resumen del analisis lexico                                 |" << endl;
             cout << "|  5) Ejecutar analisis sintactico                                    |" << endl;
             cout << "|  6) Ver Errores sintacticos                                         |" << endl;
-            cout << "|  7) Ver Arbol de Sintaxis Abstracta (AST)                           |" << endl;
-            cout << "|  8) Salir                                                           |" << endl;
+            cout << "|  7) Ver AST  (solo estructura sintactica)                           |" << endl;
+            cout << "|  8) Ejecutar analisis semantico                                     |" << endl;
+            cout << "|  9) Ver Errores semanticos                                          |" << endl;
+            cout << "| 10) Ver Tabla de simbolos                                           |" << endl;
+            cout << "| 11) Ver AST  con atributos semanticos de tipo {T}                  |" << endl;
+            cout << "| 12) Salir                                                           |" << endl;
             cout << "+---------------------------------------------------------------------+" << endl;
             cout << endl << "  Opcion: "; cin >> opc; cout << endl;
             if (cin.fail()) { entradaInvalida(); continue; }
             switch(opc) {
-                case 1: opcion_cargar();       break;
-                case 2: opcion_tokens();       break;
-                case 3: opcion_errores();      break;
-                case 4: opcion_resumen();      break;
-                case 5: opcion_sintactico();   break;
-                case 6: opcion_errores_sint(); break;
-                case 7: opcion_ast();          break;
-                case 8: break; default: break; }
-        } while (opc<=0 || opc>8);
-        if (opc==8) break;
+                case 1:  opcion_cargar();          break;
+                case 2:  opcion_tokens();          break;
+                case 3:  opcion_errores();         break;
+                case 4:  opcion_resumen();         break;
+                case 5:  opcion_sintactico();      break;
+                case 6:  opcion_errores_sint();    break;
+                case 7:  opcion_ast();             break;
+                case 8:  opcion_semantico();       break;
+                case 9:  opcion_errores_sem();     break;
+                case 10: opcion_tabla_simbolos();  break;
+                case 11: opcion_ast_sem();         break;
+                case 12: break; default: break; }
+        } while (opc<=0 || opc>12);
+        if (opc==12) break;
         do {
             system("cls"); cabecera();
             cout << endl << "  Desea realizar otra consulta?  1) Si    2) No : ";
@@ -192,8 +258,9 @@ void interfaz() {
 
 int main() {
     interfaz();
-    if (g_analizado) lexer_liberar(g_lex);
-    if (g_parseado)  parser_liberar(g_parser);
+    if (g_analizado)   lexer_liberar(g_lex);
+    if (g_parseado)    parser_liberar(g_parser);
+    if (g_semanticado) semantico_liberar(g_sem);
     system("cls");
     cout << endl << "  Hasta la proxima..." << endl;
     cout << "  Pero todo depende de lo que diga el autor..." << endl << endl;

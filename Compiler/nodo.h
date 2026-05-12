@@ -73,6 +73,7 @@ struct NodoAST {
     TipoNodo tipo;
     string valor;       // lexema o nombre cuando aplica
     string valorTipo;   // tipo de dato como string ("entero","deci"…)
+    string tipoAtrib;   // atributo semantico: tipo calculado por el analizador semantico
     int linea;
     int columna;
 
@@ -90,5 +91,6 @@ NodoAST* nodo_crear (TipoNodo tipo, string valor, int linea, int columna);
 // Libera recursivamente todo el subárbol apuntado por raiz
 void nodo_liberar (NodoAST* raiz);
 
-// Imprime el árbol completo con sangría para visualización en consola
-void nodo_imprimir (const NodoAST* nodo, int profundidad = 0);
+// Imprime el árbol completo con sangría para visualización en consola.
+// mostrarAtribs=false omite los atributos de tipo calculados por el semantico.
+void nodo_imprimir (const NodoAST* nodo, int profundidad = 0, bool mostrarAtribs = true);

@@ -210,7 +210,9 @@ static NodoAST* parser_programa() {
         } else {
             ultimo->siguiente = decl;
         }
+        // Avanzar al último nodo de la cadena (multi-declaración: entero a, b, c;)
         ultimo = decl;
+        while (ultimo->siguiente) ultimo = ultimo->siguiente;
     }
 
     return raiz;
@@ -383,7 +385,9 @@ static NodoAST* parser_bloque(const string& contexto) {
         } else {
             ultimo->siguiente = sent;
         }
+        // Avanzar al último nodo de la cadena (multi-declaración: entero a, b, c;)
         ultimo = sent;
+        while (ultimo->siguiente) ultimo = ultimo->siguiente;
     }
 
     if (!consumir(LLAVE_CIE)) {
